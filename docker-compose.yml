@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # Note: Database is hosted on Supabase - no local PostgreSQL container needed
+
+  # Redis Cache (Local development only)
+  redis:
+    image: redis:7-alpine
+    container_name: railbooker-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - railbooker-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Note: Backend and AI Gateway run using global venv - no containers needed
+  # Use the startup scripts: start-backend.bat and start-ai-gateway.bat
+  
+  # Uncomment below if you want to run services in containers (requires Dockerfiles)
+  # backend:
+  #   build: ./backend
+  #   container_name: railbooker-backend
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     - "${BACKEND_PORT:-8000}:8000"
+  #   depends_on:
+  #     redis:
+  #       condition: service_healthy
+  #   networks:
+  #     - railbooker-network
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+
+  # ai-gateway:
+  #   build: ./ai-gateway
+  #   container_name: railbooker-ai
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     - "${AI_GATEWAY_PORT:-8001}:8001"
+  #   networks:
+  #     - railbooker-network
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+
+  # Frontend (Future Phase 2)
+  # frontend:
+  #   build: ./frontend
+  #   container_name: railbooker-frontend
+  #   ports:
+  #     - "3000:3000"
+  #   networks:
+  #     - railbooker-network
+
+volumes:
+  # Note: No postgres_data volume needed since using Supabase
+  redis_data:
+
+networks:
+  railbooker-network:
+    driver: bridge
